@@ -35,6 +35,29 @@ const markers = {}; // To store user markers
 socket.on("receive-location", (data) => {
     const { latitude, longitude, id, name } = data;
 
+    // Check if the user is new to the map and show toast
+    if (!markers[id]) {
+        // Show a toast message for the new user
+        Toastify({
+            text: `${name} has joined the map!`,
+            duration: 5000, // Duration in milliseconds
+            gravity: "top", // Position: top or bottom
+            position: "right", // Position: left, center, or right
+            style: {
+                background: "rgba(0, 0, 0, 0.8)", // Dark background with some transparency
+                color: "#fff", // White text color for contrast
+                borderRadius: "8px", // Rounded corners for modern look
+                padding: "12px 24px", // Padding for better visual appearance
+                fontSize: "16px", // Slightly larger text size for readability
+                boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.3)", // Subtle shadow for depth
+                fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", // Modern font family
+                textAlign: "center", // Center align the text
+                letterSpacing: "0.5px", // Slight letter spacing for better readability
+            },
+        }).showToast();
+        
+    }
+
     // Calculate distance between last position and new position (in km)
     let distance = 0;
     if (lastLatitude !== 0 && lastLongitude !== 0) {
