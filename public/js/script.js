@@ -1,22 +1,33 @@
 const socket = io();
 
 let currentZoomLevel = 16; // Default zoom level
-let lastLatitude = 0;
-let lastLongitude = 0;
-let mapCenter = [0, 0]; // Start with a global center
 let isLocationSet = false; // Flag to track if the initial location has been set
 
 // Prompt user for their name
 const userName = prompt("Enter your name:") || "Anonymous";
 
+// Initialize the map and set the initial view
+const map = L.map("map", {
+    center: [0, 0], // Initial center (global center until user's first location)
+    zoom: currentZoomLevel, // Fixed zoom level
+    maxZoom: 18, // Max zoom level
+});
+
+// Tile layer for the map
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "By Harshal Shelke"
+}).addTo(map);
+
+const markers = {}; // To store user markers
+
 // Watch the user's position and send it to the server
 if (navigator.geolocation) {
     navigator.geolocation.watchPosition((position) => {
         const { latitude, longitude } = position.coords;
-        
+
         // Only set the map center the first time location is received
         if (!isLocationSet) {
-            map.setView([latitude, longitude], currentZoomLevel);
+            map.setView([latitude, longitude], currentZoomLevel); // Set initial center
             isLocationSet = true; // Mark that location has been set
         }
 
@@ -31,20 +42,7 @@ if (navigator.geolocation) {
     });
 }
 
-// Initialize the map and set the initial view
-const map = L.map("map", {
-    center: [0, 0], // Initial center, but this won't change until user's first location
-    zoom: currentZoomLevel, // Fixed zoom level
-    maxZoom: 18, // Max zoom level (if necessary)
-});
-
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: "By Harshal Shelke"
-}).addTo(map);
-
-const markers = {}; // To store user markers
-
-// Handle location updates from the server
+// Handle location updates from the server (other users' locations)
 socket.on("receive-location", (data) => {
     const { latitude, longitude, id, name } = data;
 
@@ -80,10 +78,6 @@ socket.on("receive-location", (data) => {
         markers[id] = L.marker([latitude, longitude]).addTo(map);
         markers[id].bindPopup(name).openPopup();
     }
-
-    // Update last known position
-    lastLatitude = latitude;
-    lastLongitude = longitude;
 });
 
 // Simple function to calculate distance in km using the Haversine formula
