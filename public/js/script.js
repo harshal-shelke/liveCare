@@ -4,6 +4,7 @@ let currentZoomLevel = 16; // Default zoom level
 let lastLatitude = 0;
 let lastLongitude = 0;
 let mapCenter = [0, 0]; // Start with a global center
+let isLocationSet = false; // Flag to track if the initial location has been set
 
 // Prompt user for their name
 const userName = prompt("Enter your name:") || "Anonymous";
@@ -12,6 +13,14 @@ const userName = prompt("Enter your name:") || "Anonymous";
 if (navigator.geolocation) {
     navigator.geolocation.watchPosition((position) => {
         const { latitude, longitude } = position.coords;
+        
+        // Only set the map center the first time location is received
+        if (!isLocationSet) {
+            map.setView([latitude, longitude], currentZoomLevel);
+            isLocationSet = true; // Mark that location has been set
+        }
+
+        // Send the user's location to the server
         socket.emit("send-location", { latitude, longitude, name: userName });
     }, (error) => {
         console.log(error);
@@ -24,7 +33,7 @@ if (navigator.geolocation) {
 
 // Initialize the map and set the initial view
 const map = L.map("map", {
-    center: [0, 0], // Initial center, but this won't change
+    center: [0, 0], // Initial center, but this won't change until user's first location
     zoom: currentZoomLevel, // Fixed zoom level
     maxZoom: 18, // Max zoom level (if necessary)
 });
