@@ -23,7 +23,11 @@ if (navigator.geolocation) {
 }
 
 // Initialize the map and set the initial view
-const map = L.map("map").setView([0, 0], 16);
+const map = L.map("map", {
+    center: [0, 0], // Initial center, but this won't change
+    zoom: currentZoomLevel, // Fixed zoom level
+    maxZoom: 18, // Max zoom level (if necessary)
+});
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "By Harshal Shelke"
@@ -40,40 +44,24 @@ socket.on("receive-location", (data) => {
         // Show a toast message for the new user
         Toastify({
             text: `${name} has joined the map!`,
-            duration: 5000, // Duration in milliseconds
-            gravity: "top", // Position: top or bottom
-            position: "right", // Position: left, center, or right
+            duration: 5000,
+            gravity: "top",
+            position: "right",
             style: {
-                background: "rgba(0, 0, 0, 0.8)", // Dark background with some transparency
-                color: "#fff", // White text color for contrast
-                borderRadius: "8px", // Rounded corners for modern look
-                padding: "12px 24px", // Padding for better visual appearance
-                fontSize: "16px", // Slightly larger text size for readability
-                boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.3)", // Subtle shadow for depth
-                fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", // Modern font family
-                textAlign: "center", // Center align the text
-                letterSpacing: "0.5px", // Slight letter spacing for better readability
+                background: "rgba(0, 0, 0, 0.8)",
+                color: "#fff",
+                borderRadius: "8px",
+                padding: "12px 24px",
+                fontSize: "16px",
+                boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.3)",
+                fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+                textAlign: "center",
+                letterSpacing: "0.5px",
             },
         }).showToast();
-        
     }
 
-    // Calculate distance between last position and new position (in km)
-    let distance = 0;
-    if (lastLatitude !== 0 && lastLongitude !== 0) {
-        distance = getDistance(lastLatitude, lastLongitude, latitude, longitude);
-    }
-
-    // Adjust zoom level based on distance (max zoom 18, min zoom 10)
-    currentZoomLevel = Math.max(10, Math.min(18, 16 - distance / 10));
-
-    // Update map center only if necessary
-    if (mapCenter[0] !== latitude || mapCenter[1] !== longitude) {
-        map.flyTo([latitude, longitude], currentZoomLevel); // Smooth zoom transition
-        mapCenter = [latitude, longitude]; // Update center
-    }
-
-    // Update or add markers
+    // Update or add markers without changing zoom or map center
     if (markers[id]) {
         // Update existing marker position
         markers[id].setLatLng([latitude, longitude]);
