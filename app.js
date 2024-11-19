@@ -3,6 +3,8 @@ const app = express();
 const path = require('path');
 const http = require('http');
 const socketio = require('socket.io');
+require('dotenv').config();
+
 
 const server = http.createServer(app);
 const io = socketio(server);
@@ -10,17 +12,25 @@ const io = socketio(server);
 app.set('view engine', 'ejs');
 app.use(express.static(path.join(__dirname, 'public')));
 
-io.on("connection", (socket) => {
-    // console.log(`User connected: ${socket.id}`);
 
-    socket.on("send-location", (data) => {
-        // console.log(`Location received from ${socket.id}:`, data);
-        io.emit("receive-location", { id: socket.id, ...data });
+let users = {}; // Store users' locations and IDs
+
+io.on('connection', (socket) => {
+
+    // When a user sends their location, save it on the server
+    socket.on('send-location', (data) => {
+        users[socket.id] = data; // Save the user's location
+        // Broadcast the location to all connected users
+        io.emit('receive-location', { ...data, id: socket.id });
     });
 
-    socket.on("disconnect", () => {
-        // console.log(`User disconnected: ${socket.id}`);
-        io.emit("user-disconnect", socket.id);
+    // Send the current locations of all users to the newly connected user
+    socket.emit('all-users', Object.values(users));
+
+    // Handle disconnection and remove the user from the list
+    socket.on('disconnect', () => {
+        delete users[socket.id];
+        io.emit('user-disconnect', socket.id); // Notify all users about the disconnection
     });
 });
 
