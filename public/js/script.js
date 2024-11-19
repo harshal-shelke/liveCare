@@ -165,6 +165,10 @@ function updateUserDropdowns() {
     const user1Select = document.getElementById("user1");
     const user2Select = document.getElementById("user2");
 
+    // Get the current selected values of the dropdowns
+    const selectedUser1 = user1Select.value;
+    const selectedUser2 = user2Select.value;
+
     // Clear existing options
     user1Select.innerHTML = "";
     user2Select.innerHTML = "";
@@ -179,9 +183,18 @@ function updateUserDropdowns() {
         option2.value = id;
         option2.textContent = markers[id].getPopup().getContent();
 
+        // Add options to the dropdown
         user1Select.appendChild(option1);
         user2Select.appendChild(option2);
     });
+
+    // Re-select the previously selected user, if any
+    if (selectedUser1) {
+        user1Select.value = selectedUser1;
+    }
+    if (selectedUser2) {
+        user2Select.value = selectedUser2;
+    }
 }
 
 // Event listener for calculate button
